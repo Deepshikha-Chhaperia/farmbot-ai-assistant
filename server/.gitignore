@@ -1,0 +1,8 @@
+# Node dependencies generated in the local proxy
+node_modules/
+
+# Logs and runtime files
+*.log
+
+# Environment overrides for the proxy
+.env

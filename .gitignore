@@ -1,0 +1,52 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Environment files (CRITICAL SECURITY)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*.local
+
+# API Keys and Secrets
+**/secrets/
+**/config/secrets.json
+**/*credentials*
+**/*secret*
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Security and sensitive files
+SECURITY_REVIEW.md
+**/security/
+**/*.pem
+**/*.key
+**/*.crt
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+.vercel

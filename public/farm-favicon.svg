@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <!-- Beautiful gradient background -->
+    <linearGradient id="skyGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#0ea5e9;stop-opacity:1" />
+      <stop offset="70%" style="stop-color:#38bdf8;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7dd3fc;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Ground gradient -->
+    <linearGradient id="groundGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#15803d;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#16a34a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#22c55e;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Wheat gradient -->
+    <linearGradient id="wheatGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f59e0b;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Leaf gradient -->
+    <linearGradient id="leafGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#84cc16;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#65a30d;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Subtle shadow -->
+    <filter id="shadow">
+      <dropShadow dx="0" dy="1" stdDeviation="1" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  
+  <!-- Sky background with gradient -->
+  <rect width="32" height="32" fill="url(#skyGradient)" rx="6" ry="6"/>
+  
+  <!-- Subtle clouds -->
+  <ellipse cx="8" cy="6" rx="3" ry="1.5" fill="white" opacity="0.3"/>
+  <ellipse cx="24" cy="4" rx="2.5" ry="1" fill="white" opacity="0.25"/>
+  
+  <!-- Rolling hills/ground with gradient -->
+  <path d="M0 22 Q8 20 16 22 T32 24 L32 32 Q26 32 16 32 Q6 32 0 32 Z" fill="url(#groundGradient)"/>
+  
+  <!-- Main wheat stalk with shadow -->
+  <g filter="url(#shadow)">
+    <!-- Central stem -->
+    <rect x="15.2" y="8" width="1.6" height="16" fill="url(#leafGradient)" rx="0.8"/>
+    
+    <!-- Wheat head with detailed grains -->
+    <g fill="url(#wheatGradient)">
+      <!-- Top grains (smaller) -->
+      <ellipse cx="16" cy="9" rx="1.2" ry="0.8" fill="#fcd34d"/>
+      
+      <!-- Middle grains (larger) -->
+      <ellipse cx="14.5" cy="11" rx="1.4" ry="1" />
+      <ellipse cx="17.5" cy="11" rx="1.4" ry="1" />
+      <ellipse cx="13.8" cy="13" rx="1.5" ry="1.1" />
+      <ellipse cx="18.2" cy="13" rx="1.5" ry="1.1" />
+      <ellipse cx="14.2" cy="15" rx="1.4" ry="1" />
+      <ellipse cx="17.8" cy="15" rx="1.4" ry="1" />
+      <ellipse cx="15" cy="17" rx="1.3" ry="0.9" />
+      <ellipse cx="17" cy="17" rx="1.3" ry="0.9" />
+      
+      <!-- Subtle grain details -->
+      <ellipse cx="14.5" cy="11" rx="0.8" ry="0.6" fill="#fef3c7" opacity="0.7"/>
+      <ellipse cx="17.5" cy="11" rx="0.8" ry="0.6" fill="#fef3c7" opacity="0.7"/>
+    </g>
+  </g>
+  
+  <!-- Side wheat stalks for depth -->
+  <g opacity="0.7" filter="url(#shadow)">
+    <!-- Left stalk -->
+    <rect x="9" y="12" width="1.2" height="12" fill="url(#leafGradient)" rx="0.6"/>
+    <ellipse cx="8.5" cy="13" rx="1" ry="0.7" fill="url(#wheatGradient)"/>
+    <ellipse cx="10.5" cy="13" rx="1" ry="0.7" fill="url(#wheatGradient)"/>
+    <ellipse cx="8.8" cy="15" rx="1.1" ry="0.8" fill="url(#wheatGradient)"/>
+    <ellipse cx="10.2" cy="15" rx="1.1" ry="0.8" fill="url(#wheatGradient)"/>
+    
+    <!-- Right stalk -->
+    <rect x="22" y="14" width="1.2" height="10" fill="url(#leafGradient)" rx="0.6"/>
+    <ellipse cx="21.5" cy="15" rx="1" ry="0.7" fill="url(#wheatGradient)"/>
+    <ellipse cx="23.5" cy="15" rx="1" ry="0.7" fill="url(#wheatGradient)"/>
+    <ellipse cx="21.8" cy="17" rx="1.1" ry="0.8" fill="url(#wheatGradient)"/>
+    <ellipse cx="23.2" cy="17" rx="1.1" ry="0.8" fill="url(#wheatGradient)"/>
+  </g>
+  
+  <!-- Small decorative leaves -->
+  <g fill="url(#leafGradient)" opacity="0.6">
+    <ellipse cx="6" cy="24" rx="2" ry="1" transform="rotate(-20 6 24)"/>
+    <ellipse cx="26" cy="25" rx="1.5" ry="0.8" transform="rotate(15 26 25)"/>
+  </g>
+  
+  <!-- Tech accent - subtle circuit pattern in corner -->
+  <g stroke="#ffffff" stroke-width="0.5" fill="none" opacity="0.15">
+    <rect x="2" y="2" width="6" height="6" rx="1"/>
+    <circle cx="3.5" cy="3.5" r="0.5"/>
+    <circle cx="6.5" cy="6.5" r="0.5"/>
+    <line x1="3.5" y1="3.5" x2="6.5" y2="6.5"/>
+  </g>
+  
+  <!-- Subtle highlight for 3D effect -->
+  <rect width="32" height="1" fill="white" opacity="0.1" rx="6" ry="6"/>
+</svg>

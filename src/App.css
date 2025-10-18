@@ -1,0 +1,5 @@
+/* FarmBot App Styles - Minimal custom styles since we use design system */
+
+.read-the-docs {
+  color: hsl(var(--muted-foreground));
+}
