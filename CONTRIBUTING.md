@@ -52,7 +52,7 @@ We love your input! We want to make contributing to FarmBot as easy and transpar
 
 ## Bug Reports
 
-We use GitHub issues to track public bugs. Report a bug by [opening a new issue](https://github.com/khush/farmbot-ai-assistant/issues).
+We use GitHub issues to track public bugs. Report a bug by [opening a new issue](https://github.com/Deepshikha-Chhaperia/farmbot-ai-assistant/issues).
 
 **Great Bug Reports** tend to have:
 - A quick summary and/or background
@@ -65,7 +65,7 @@ We use GitHub issues to track public bugs. Report a bug by [opening a new issue]
 
 ## Feature Requests
 
-We actively welcome feature requests! Please [open an issue](https://github.com/khush/farmbot-ai-assistant/issues) with:
+We actively welcome feature requests! Please [open an issue](https://github.com/Deepshikha-Chhaperia/farmbot-ai-assistant/issues) with:
 - Clear description of the feature
 - Why it would be valuable for farmers
 - Any implementation ideas you have

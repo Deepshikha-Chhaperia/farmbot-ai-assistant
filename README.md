@@ -2,10 +2,10 @@
 
 Voice-first agricultural AI assistant for India's 600+ million farmers with real government data integration.
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-Visit%20Now-brightgreen?style=for-the-badge)](https://farmbot-ai-assistant.vercel.app/)
-[![GitHub Stars](https://img.shields.io/github/stars/khush/farmbot-ai-assistant?style=for-the-badge)](https://github.com/khush/farmbot-ai-assistant/stargazers)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Visit%20Now-brightgreen?style=for-the-badge)](https://farmbot-ai.vercel.app/)
+[![GitHub Stars](https://img.shields.io/github/stars/Deepshikha-Chhaperia/farmbot-ai-assistant?style=for-the-badge)](https://github.com/Deepshikha-Chhaperia/farmbot-ai-assistant/stargazers)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
-[![Made with Love](https://img.shields.io/badge/Made%20with-Love%20for%20Farmers-red?style=for-the-badge)](https://github.com/khush/farmbot-ai-assistant)
+[![Made with Love](https://img.shields.io/badge/Made%20with-Love%20for%20Farmers-red?style=for-the-badge)](https://github.com/Deepshikha-Chhaperia/farmbot-ai-assistant)
 
 ## The Problem
 
@@ -70,7 +70,7 @@ FarmBot is a **revolutionary voice-first AI assistant** that:
 
 ```bash
 # Clone the repository
-git clone https://github.com/khush/farmbot-ai-assistant.git
+git clone https://github.com/Deepshikha-Chhaperia/farmbot-ai-assistant.git
 cd farmbot-ai-assistant
 
 # Install dependencies
@@ -274,9 +274,9 @@ We believe agricultural technology should be accessible to everyone. By open-sou
 
 <div align="center">
 
-### **Built with love for India's Farmers**
+### **🌾 Built with ❤️ for India's Farmers 🇮🇳**
 
-[Star this repo](https://github.com/khush/farmbot-ai-assistant) • [Try Live Demo](https://farmbot-ai.vercel.app/) • [Report Bug](https://github.com/khush/farmbot-ai-assistant/issues) • [Request Feature](https://github.com/khush/farmbot-ai-assistant/issues)
+[⭐ Star this repo](https://github.com/Deepshikha-Chhaperia/farmbot-ai-assistant) • [🚀 Try Live Demo](https://farmbot-ai.vercel.app/) • [🐛 Report Bug](https://github.com/Deepshikha-Chhaperia/farmbot-ai-assistant/issues) • [✨ Request Feature](https://github.com/Deepshikha-Chhaperia/farmbot-ai-assistant/issues)
 
 **"Technology should serve humanity, especially those who feed us."**
 
