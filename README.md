@@ -2,7 +2,7 @@
 
 Voice-first agricultural AI assistant for India's 600+ million farmers with real government data integration.
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-Visit%20Now-brightgreen?style=for-the-badge)](https://farmbot-ai-assistant.vercel.app/)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Visit%20Now-brightgreen?style=for-the-badge)](https://farmbot-ai.vercel.app/)
 [![GitHub Stars](https://img.shields.io/github/stars/khush/farmbot-ai-assistant?style=for-the-badge)](https://github.com/khush/farmbot-ai-assistant/stargazers)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 [![Made with Love](https://img.shields.io/badge/Made%20with-Love%20for%20Farmers-red?style=for-the-badge)](https://github.com/khush/farmbot-ai-assistant)
