@@ -130,27 +130,27 @@ VITE_DATA_GOV_IN_API_KEY=your_data_gov_key
 - OpenRouter API key (for AI features)
 - ElevenLabs API key (for premium voice)
 
-### 1⃣ Clone & Install
+### 1. Clone & Install
 ```bash
 git clone https://github.com/yourusername/farmbot.git
 cd farmbot
 bun install  # or npm install
 ```
 
-### 2⃣ Environment Setup
+### 2. Environment Setup
 Create `.env` file:
 ```env
 VITE_OPENROUTER_API_KEY=your_openrouter_key
 VITE_ELEVENLABS_API_KEY=your_elevenlabs_key
 ```
 
-### 3⃣ Start Development
+### 3. Start Development
 ```bash
 bun dev  # or npm run dev
 # Open http://localhost:5173
 ```
 
-### 4⃣ Enable Voice Features
+### 4. Enable Voice Features
 1. **Allow microphone access** when prompted
 2. **Enable audio** for TTS responses
 3. **Try Hindi/English commands** on any page
