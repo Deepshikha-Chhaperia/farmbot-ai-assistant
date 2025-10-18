@@ -274,9 +274,9 @@ We believe agricultural technology should be accessible to everyone. By open-sou
 
 <div align="center">
 
-### **🌾 Built with ❤️ for India's Farmers 🇮🇳**
+### **Built for India's Farmers 🇮🇳**
 
-[⭐ Star this repo](https://github.com/Deepshikha-Chhaperia/farmbot-ai-assistant) • [🚀 Try Live Demo](https://farmbot-ai.vercel.app/) • [🐛 Report Bug](https://github.com/Deepshikha-Chhaperia/farmbot-ai-assistant/issues) • [✨ Request Feature](https://github.com/Deepshikha-Chhaperia/farmbot-ai-assistant/issues)
+[Star this repo](https://github.com/Deepshikha-Chhaperia/farmbot-ai-assistant) • [Try Live Demo](https://farmbot-ai.vercel.app/) • [Report Bug](https://github.com/Deepshikha-Chhaperia/farmbot-ai-assistant/issues) • [Request Feature](https://github.com/Deepshikha-Chhaperia/farmbot-ai-assistant/issues)
 
 **"Technology should serve humanity, especially those who feed us."**
 
