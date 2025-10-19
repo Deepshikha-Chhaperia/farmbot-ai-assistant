@@ -66,6 +66,10 @@ FarmBot is a **revolutionary voice-first AI assistant** that:
 ### Try the Live Demo
 **[farmbot-ai-assistant.vercel.app](https://farmbot-ai.vercel.app/)**
 
+
+https://github.com/user-attachments/assets/03634c3b-d41b-447c-93c5-69fe355a79ee
+
+
 ### Run Locally
 
 ```bash
