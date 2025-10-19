@@ -67,7 +67,7 @@ FarmBot is a **revolutionary voice-first AI assistant** that:
 **[farmbot-ai-assistant.vercel.app](https://farmbot-ai.vercel.app/)**
 
 
-https://github.com/user-attachments/assets/03634c3b-d41b-447c-93c5-69fe355a79ee
+https://github.com/user-attachments/assets/4b3883a4-a14f-41f8-90f9-857c37aad1f2
 
 
 ### Run Locally
