@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -14,6 +14,7 @@ import {
   MicOff
 } from 'lucide-react';
 import { useProfile } from '@/components/Profile/ProfileProvider';
+import { translateTextLive } from '@/utils/realTimeTranslation';
 import OptimizedSpeechService from '@/services/OptimizedSpeechService';
 import ReliableMarketService from '@/services/ReliableMarketService';
 
@@ -46,6 +47,11 @@ const MarketPrices: React.FC = () => {
   const [apiStatus, setApiStatus] = useState<string>('');
   const [speechService] = useState(() => new OptimizedSpeechService());
   const [marketService] = useState(() => new ReliableMarketService());
+  const [voiceHintDelivered, setVoiceHintDelivered] = useState(false);
+  const [displayMarketData, setDisplayMarketData] = useState<MarketPrice[]>([]);
+  const [displayCropType, setDisplayCropType] = useState<string>(profile?.cropType || '');
+  const [displayUserLocation, setDisplayUserLocation] = useState<string>('');
+  const translationCacheRef = useRef<Map<string, string>>(new Map());
 
   const language = profile?.language || 'hi-IN';
 
@@ -54,21 +60,206 @@ const MarketPrices: React.FC = () => {
       title: 'बाजार भाव',
       subtitle: 'आपकी फसल',
       askForMore: 'और फसलों के भाव पूछें',
-      listening: 'सुन रहा हूं...',
-      per: 'per',
-      listen: 'Listen'
+      listeningStatus: 'सुन रहा हूं...',
+      per: 'प्रति',
+      listen: 'सुनें',
+      voiceSearch: 'वॉयस सर्च',
+      listenToPrices: 'भाव सुनें',
+      summaryTitle: 'आपकी फसल के भाव',
+      summarySource: 'सरकारी भाव',
+      loadingTitle: 'बाजार भाव लोड हो रहे हैं...',
+      loadingDescription: 'आपकी फसलों के लिए सरकारी डेटा लिया जा रहा है',
+      loadingStatus: 'एगमार्कनेट और सरकारी डेटाबेस से रियल-टाइम भाव लाए जा रहे हैं...',
+      loadingHint: 'डेटा मिलते ही भाव दिख जाएंगे',
+      progressiveTitle: 'लोड हो रहा है...',
+      progressiveSubtitle: 'अगली फसल का भाव लिया जा रहा है',
+      progressiveStatus: 'आपकी अगली फसल के लिए सरकारी बाजार डेटा लिया जा रहा है...',
+      searchingStatus: 'फसल के भाव खोजे जा रहे हैं...',
+  voiceSearchHint: 'अगर आप किसी नई फसल का भाव जानना चाहते हैं तो ऊपर दिए गए वॉयस बटन का इस्तेमाल करें।',
+      cropSingular: 'फसल',
+      cropPlural: 'फसलें',
+      loadingLocation: 'स्थान लोड हो रहा है...'
     },
     'en-IN': {
       title: 'Market Prices', 
       subtitle: 'Your Crop',
       askForMore: 'Ask for more crop prices',
-      listening: 'Listening...',
+      listeningStatus: 'Listening...',
       per: 'per',
-      listen: 'Listen'
+      listen: 'Listen',
+      voiceSearch: 'Voice Search',
+      listenToPrices: 'Listen to Prices',
+      summaryTitle: 'Your Crop Prices',
+      summarySource: 'Government prices from',
+      loadingTitle: 'Loading Market Prices...',
+      loadingDescription: 'Fetching government data for your crops in',
+      loadingStatus: 'Getting real-time prices from AGMARKNET and government databases...',
+      loadingHint: 'Prices will appear as soon as data is available',
+      progressiveTitle: 'Loading...',
+      progressiveSubtitle: 'Fetching next crop price',
+      progressiveStatus: 'Getting government market data for your next crop...',
+      searchingStatus: 'Searching for crop prices...',
+  voiceSearchHint: 'To check another crop price, use the voice search button at the top.',
+      cropSingular: 'Crop',
+      cropPlural: 'Crops',
+      loadingLocation: 'Loading location...'
     }
   };
 
   const currentMessages = messages[language as keyof typeof messages] || messages['hi-IN'];
+
+  const translateWithCache = useCallback(
+    async (text: string, fromLang: string, toLang: string) => {
+      if (!text || !text.trim()) {
+        return text;
+      }
+
+      if (!toLang || fromLang === toLang) {
+        return text;
+      }
+
+      const sourceLang = fromLang || 'auto';
+      const cacheKey = `${sourceLang}->${toLang}:${text}`;
+      const cache = translationCacheRef.current;
+
+      if (cache.has(cacheKey)) {
+        return cache.get(cacheKey)!;
+      }
+
+      try {
+        const translated = await translateTextLive(text, sourceLang, toLang);
+        cache.set(cacheKey, translated);
+        return translated;
+      } catch (translationError) {
+        console.error('TRANSLATE: UI translation failed', translationError);
+        return text;
+      }
+    },
+    []
+  );
+
+  const localizeMarketEntries = useCallback(
+    async (entries: MarketPrice[], targetLanguage: string) => {
+      if (!entries || entries.length === 0 || targetLanguage !== 'hi-IN') {
+        return entries;
+      }
+
+      return Promise.all(
+        entries.map(async entry => {
+          const localizedCommodity = await translateWithCache(entry.commodity, 'auto', targetLanguage);
+          const localizedMarket = await translateWithCache(entry.market, 'auto', targetLanguage);
+          const localizedUnit = entry.unit ? await translateWithCache(entry.unit, 'auto', targetLanguage) : entry.unit;
+
+          return {
+            ...entry,
+            commodity: localizedCommodity,
+            market: localizedMarket,
+            unit: localizedUnit
+          };
+        })
+      );
+    },
+    [translateWithCache]
+  );
+
+  useEffect(() => {
+    let isActive = true;
+
+    const applyDisplayTranslations = async () => {
+      if (!marketData || marketData.length === 0) {
+        if (isActive) {
+          setDisplayMarketData([]);
+        }
+        return;
+      }
+
+      if (language === 'hi-IN') {
+        if (isActive) {
+          setDisplayMarketData(marketData);
+        }
+        const localized = await localizeMarketEntries(marketData, language);
+        if (isActive) {
+          setDisplayMarketData(localized);
+        }
+      } else if (isActive) {
+        setDisplayMarketData(marketData);
+      }
+    };
+
+    applyDisplayTranslations();
+
+    return () => {
+      isActive = false;
+    };
+  }, [marketData, language, localizeMarketEntries]);
+
+  useEffect(() => {
+    let isActive = true;
+
+    const applyCropTypeTranslation = async () => {
+      const cropText = profile?.cropType || '';
+      if (!cropText) {
+        if (isActive) {
+          setDisplayCropType('');
+        }
+        return;
+      }
+
+      if (language === 'hi-IN') {
+        const translated = await translateWithCache(cropText, 'auto', language);
+        if (isActive) {
+          setDisplayCropType(translated);
+        }
+      } else if (isActive) {
+        setDisplayCropType(cropText);
+      }
+    };
+
+    applyCropTypeTranslation();
+
+    return () => {
+      isActive = false;
+    };
+  }, [profile?.cropType, language, translateWithCache]);
+
+  useEffect(() => {
+    let isActive = true;
+
+    const applyLocationTranslation = async () => {
+      if (!userLocation) {
+        if (isActive) {
+          setDisplayUserLocation('');
+        }
+        return;
+      }
+
+      const combinedLocation = userLocation.region
+        ? `${userLocation.city}, ${userLocation.region}`
+        : userLocation.city;
+
+      if (!combinedLocation) {
+        if (isActive) {
+          setDisplayUserLocation('');
+        }
+        return;
+      }
+
+      if (language === 'hi-IN') {
+        const translated = await translateWithCache(combinedLocation, 'auto', language);
+        if (isActive) {
+          setDisplayUserLocation(translated);
+        }
+      } else if (isActive) {
+        setDisplayUserLocation(combinedLocation);
+      }
+    };
+
+    applyLocationTranslation();
+
+    return () => {
+      isActive = false;
+    };
+  }, [userLocation?.city, userLocation?.region, language, translateWithCache]);
 
   // Get user location
   const getUserLocation = async () => {
@@ -184,14 +375,18 @@ const MarketPrices: React.FC = () => {
   };
 
   const groupedMarketData = useMemo<CommodityMarkets[]>(() => {
-    if (!marketData || marketData.length === 0) {
+    const sourceData = language === 'hi-IN'
+      ? (displayMarketData.length > 0 ? displayMarketData : marketData)
+      : marketData;
+
+    if (!sourceData || sourceData.length === 0) {
       return [];
     }
 
     const cityLower = (userLocation?.city || '').toLowerCase();
     const groups = new Map<string, CommodityMarkets>();
 
-    marketData.forEach(entry => {
+    sourceData.forEach(entry => {
       const key = entry.commodity.toLowerCase();
       if (!groups.has(key)) {
         groups.set(key, { commodity: entry.commodity, markets: [] });
@@ -221,7 +416,7 @@ const MarketPrices: React.FC = () => {
     });
 
     return rankedGroups.sort((a, b) => a.commodity.localeCompare(b.commodity));
-  }, [marketData, userLocation?.city]);
+  }, [displayMarketData, marketData, language, userLocation?.city]);
 
   const loadFarmerCrops = async () => {
     if (!userLocation) {
@@ -238,6 +433,11 @@ const MarketPrices: React.FC = () => {
           ? 'मैं आपके लिए बाजार के भाव लोड कर रहा हूं'
           : 'I am loading market prices for you'
       );
+
+      if (!voiceHintDelivered) {
+        await safeSpeak(currentMessages.voiceSearchHint);
+        setVoiceHintDelivered(true);
+      }
 
       if (marketData.length === 0) {
         setMarketData([]);
@@ -294,14 +494,19 @@ const MarketPrices: React.FC = () => {
               setIsLoading(false);
             }
 
+            const localizedCommodity = language === 'hi-IN'
+              ? await translateWithCache(noDataEntry.commodity, 'auto', language)
+              : noDataEntry.commodity;
+
             const errorText = language === 'hi-IN'
-              ? `${noDataEntry.commodity} के लिए सरकारी डेटा उपलब्ध नहीं है`
-              : `Government data not available for ${noDataEntry.commodity}`;
+              ? `${localizedCommodity} के लिए सरकारी डेटा उपलब्ध नहीं है`
+              : `Government data not available for ${localizedCommodity}`;
 
             await safeSpeak(errorText);
             console.log(`Announced no data: ${errorText}`);
           } else {
             const cropLower = crop.toLowerCase();
+            const localizedOptions = await localizeMarketEntries(marketOptions, language);
 
             setMarketData(prevData => {
               const filtered = prevData.filter(item => item.commodity.toLowerCase() !== cropLower);
@@ -314,16 +519,19 @@ const MarketPrices: React.FC = () => {
               setIsLoading(false);
             }
 
+            const [primaryLocalized, ...additionalLocalized] = localizedOptions;
             const [primary, ...additionalMarkets] = marketOptions;
-            const priceText = language === 'hi-IN'
-              ? `${primary.commodity} का भाव ${primary.price} रुपये प्रति ${primary.unit} है ${primary.market} में`
+
+            const speakPrimary = language === 'hi-IN'
+              ? `${primaryLocalized.commodity} का भाव ${primaryLocalized.price} रुपये प्रति ${primaryLocalized.unit} है ${primaryLocalized.market} में`
               : `${primary.commodity} price is ${primary.price} rupees per ${primary.unit} at ${primary.market}`;
 
-            await safeSpeak(priceText);
-            console.log(`Announced: ${priceText}`);
+            await safeSpeak(speakPrimary);
+            console.log(`Announced: ${speakPrimary}`);
 
             if (additionalMarkets.length > 0) {
-              const summary = additionalMarkets
+              const summaryTargets = language === 'hi-IN' ? additionalLocalized : additionalMarkets;
+              const summary = summaryTargets
                 .map(option => `${option.market} ₹${option.price}`)
                 .join(language === 'hi-IN' ? ', ' : ', ');
 
@@ -472,10 +680,14 @@ const MarketPrices: React.FC = () => {
       if (foundCrop && userLocation) {
         console.log(`Found crop in voice query: ${foundCrop}`);
         
+        const cropLabelForSpeech = language === 'hi-IN'
+          ? await translateWithCache(foundCrop, 'auto', language)
+          : foundCrop;
+        
         // Announce that we're searching
         const searchingText = language === 'hi-IN'
-          ? `${foundCrop} के भाव खोज रहा हूं`
-          : `Searching for ${foundCrop} prices`;
+          ? `${cropLabelForSpeech} के भाव खोज रहा हूं`
+          : `Searching for ${cropLabelForSpeech} prices`;
         await safeSpeak(searchingText);
         
         // Fetch data for the specific crop
@@ -499,16 +711,20 @@ const MarketPrices: React.FC = () => {
             return updated;
           });
 
+          const localizedOptions = await localizeMarketEntries(marketOptions, language);
+          const [primaryLocalized, ...additionalLocalized] = localizedOptions;
           const [primary, ...additional] = marketOptions;
+
           const primaryText = language === 'hi-IN'
-            ? `${primary.commodity} का भाव ${primary.price} रुपये प्रति ${primary.unit} है ${primary.market} में`
+            ? `${primaryLocalized.commodity} का भाव ${primaryLocalized.price} रुपये प्रति ${primaryLocalized.unit} है ${primaryLocalized.market} में`
             : `${primary.commodity} price is ${primary.price} rupees per ${primary.unit} at ${primary.market}`;
 
           await safeSpeak(primaryText);
           console.log(`Spoke result: ${primaryText}`);
 
           if (additional.length > 0) {
-            const summary = additional
+            const summaryTargets = language === 'hi-IN' ? additionalLocalized : additional;
+            const summary = summaryTargets
               .map(option => `${option.market} ₹${option.price}`)
               .join(language === 'hi-IN' ? ', ' : ', ');
 
@@ -520,8 +736,8 @@ const MarketPrices: React.FC = () => {
           }
         } else {
           const noDataText = language === 'hi-IN'
-            ? `${foundCrop} के लिए बाजार डेटा उपलब्ध नहीं है`
-            : `Market data not available for ${foundCrop}`;
+            ? `${cropLabelForSpeech} के लिए बाजार डेटा उपलब्ध नहीं है`
+            : `Market data not available for ${cropLabelForSpeech}`;
 
           await safeSpeak(noDataText);
         }
@@ -624,6 +840,19 @@ const MarketPrices: React.FC = () => {
   // DEBUG: Log state before render
   console.log(`RENDER: isLoadingNextCrop=${isLoadingNextCrop}, groups=${groupedMarketData.length}, commodities=`, groupedMarketData.map(group => group.commodity));
 
+  const locationHeading = displayUserLocation || currentMessages.loadingLocation;
+  const summaryCropDisplay =
+    displayCropType ||
+    profile?.cropType ||
+    (language === 'hi-IN' ? 'गेहूं, प्याज' : 'wheat, onion');
+  const loadingLocationText =
+    displayUserLocation || (language === 'hi-IN' ? 'आपके क्षेत्र' : 'your area');
+  const loadingMessageText = language === 'hi-IN'
+    ? `${currentMessages.loadingDescription} ${loadingLocationText} में`
+    : `${currentMessages.loadingDescription} ${loadingLocationText}`;
+  const summaryLocationText =
+    displayUserLocation || (language === 'hi-IN' ? 'आपके क्षेत्र' : 'your area');
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-blue-100">
       {/* Header */}
@@ -644,7 +873,7 @@ const MarketPrices: React.FC = () => {
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-gray-800">{currentMessages.title}</h1>
-                <p className="text-sm text-gray-600">{userLocation?.city || 'Loading location...'}, {userLocation?.region || ''}</p>
+                <p className="text-sm text-gray-600">{locationHeading}</p>
               </div>
             </div>
 
@@ -659,12 +888,12 @@ const MarketPrices: React.FC = () => {
                 {isListening ? (
                   <>
                     <MicOff className="h-4 w-4" />
-                    Listening...
+                    {currentMessages.listeningStatus}
                   </>
                 ) : (
                   <>
                     <Search className="h-4 w-4" />
-                    Voice Search
+                    {currentMessages.voiceSearch}
                   </>
                 )}
               </Button>
@@ -676,7 +905,7 @@ const MarketPrices: React.FC = () => {
                 className="gap-2"
               >
                 <Volume2 className="h-4 w-4" />
-                Listen to Prices
+                {currentMessages.listenToPrices}
               </Button>
             </div>
           </div>
@@ -691,18 +920,20 @@ const MarketPrices: React.FC = () => {
             <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-2xl font-bold mb-2">Your Crop Prices</h2>
+                  <h2 className="text-2xl font-bold mb-2">{currentMessages.summaryTitle}</h2>
                   <p className="text-green-100 text-lg">
-                    {profile?.cropType || 'wheat, onion'}
+                    {summaryCropDisplay}
                   </p>
                   <p className="text-green-200 text-sm mt-1">
-                    Government prices from {userLocation?.city || 'your area'}, {userLocation?.region || ''}
+                    {language === 'hi-IN'
+                      ? `${currentMessages.summarySource} ${summaryLocationText} से`
+                      : `${currentMessages.summarySource} ${summaryLocationText}`}
                   </p>
                 </div>
                 <div className="text-right">
                   <div className="text-3xl font-bold">{groupedMarketData.length}</div>
                   <div className="text-green-100">
-                    {groupedMarketData.length === 1 ? 'Crop' : 'Crops'}
+                    {groupedMarketData.length === 1 ? currentMessages.cropSingular : currentMessages.cropPlural}
                   </div>
                 </div>
               </div>
@@ -713,9 +944,9 @@ const MarketPrices: React.FC = () => {
         {isLoading ? (
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-20 w-20 border-b-4 border-green-500 mx-auto mb-6"></div>
-            <h3 className="text-2xl font-semibold text-gray-800 mb-3">Loading Market Prices...</h3>
+            <h3 className="text-2xl font-semibold text-gray-800 mb-3">{currentMessages.loadingTitle}</h3>
             <p className="text-gray-600 mb-4 text-lg">
-              Fetching government data for your crops in <strong>{userLocation?.region || 'your area'}</strong>
+              {loadingMessageText}
             </p>
             
             <div className="bg-green-50 border border-green-200 p-4 rounded-lg mb-4 max-w-md mx-auto">
@@ -725,12 +956,12 @@ const MarketPrices: React.FC = () => {
                 <div className="animate-pulse h-3 w-3 bg-green-500 rounded-full" style={{animationDelay: '0.4s'}}></div>
               </div>
               <p className="text-sm text-green-700 font-medium">
-                Getting real-time prices from AGMARKNET and government databases...
+                {currentMessages.loadingStatus}
               </p>
             </div>
 
             <p className="text-xs text-gray-500">
-              Prices will appear as soon as data is available
+              {currentMessages.loadingHint}
             </p>
           </div>
         ) : (
@@ -738,8 +969,10 @@ const MarketPrices: React.FC = () => {
             {groupedMarketData.map(({ commodity, markets }) => {
               const primary = markets[0];
               const locationLabel = userLocation
-                ? `${toTitleCase(userLocation.city)}${userLocation.region ? `, ${toTitleCase(userLocation.region)}` : ''}`
-                : primary?.market || 'Local Market';
+                ? (language === 'hi-IN'
+                    ? displayUserLocation || `${toTitleCase(userLocation.city)}${userLocation.region ? `, ${toTitleCase(userLocation.region)}` : ''}`
+                    : `${toTitleCase(userLocation.city)}${userLocation.region ? `, ${toTitleCase(userLocation.region)}` : ''}`)
+                : (language === 'hi-IN' ? (primary?.market || 'स्थानीय मंडी') : (primary?.market || 'Local Market'));
               const hasPrimaryData = primary && !primary.noData;
 
               return (
@@ -757,7 +990,9 @@ const MarketPrices: React.FC = () => {
                             {locationLabel}
                           </p>
                           <p className="text-blue-100/80 text-sm mt-1">
-                            {markets.length} nearby market{markets.length > 1 ? 's' : ''}
+                            {language === 'hi-IN'
+                              ? `${markets.length} पास की ${markets.length > 1 ? 'मंडियां' : 'मंडी'}`
+                              : `${markets.length} nearby market${markets.length > 1 ? 's' : ''}`}
                           </p>
                         </div>
                       </div>
@@ -855,8 +1090,8 @@ const MarketPrices: React.FC = () => {
                         <TrendingUp className="h-6 w-6 text-white animate-spin" />
                       </div>
                       <div>
-                        <h3 className="text-2xl font-bold animate-pulse">Loading...</h3>
-                        <p className="text-orange-100">Fetching next crop price</p>
+                        <h3 className="text-2xl font-bold animate-pulse">{currentMessages.progressiveTitle}</h3>
+                        <p className="text-orange-100">{currentMessages.progressiveSubtitle}</p>
                       </div>
                     </div>
                     <div className="text-right">
@@ -868,7 +1103,7 @@ const MarketPrices: React.FC = () => {
                   <div className="flex items-center justify-center gap-3">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
                     <div className="text-gray-600 font-medium">
-                      Getting government market data for your next crop...
+                      {currentMessages.progressiveStatus}
                     </div>
                   </div>
                 </CardContent>
@@ -881,7 +1116,7 @@ const MarketPrices: React.FC = () => {
         {isSearching && (
           <div className="text-center py-4">
             <div className="animate-pulse text-blue-600">
-              Searching for crop prices...
+              {currentMessages.searchingStatus}
             </div>
           </div>
         )}

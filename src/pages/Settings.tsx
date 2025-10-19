@@ -1,18 +1,112 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Settings as SettingsIcon, Languages, Volume2, User, Trash2 } from 'lucide-react';
 import { useProfile } from '@/components/Profile/ProfileProvider';
 import FarmerLanguageSelector from '@/components/FarmerLanguageSelector';
-import { translateProfileDataLive } from '@/utils/realTimeTranslation';
+import { translateProfileDataLive, translateTextLive } from '@/utils/realTimeTranslation';
 
 const Settings: React.FC = () => {
   const navigate = useNavigate();
   const { profile, updateProfile, clearProfile } = useProfile();
   const [showLanguageSelector, setShowLanguageSelector] = useState(false);
+  const [displayCropType, setDisplayCropType] = useState(profile?.cropType || '');
+  const [displayVillage, setDisplayVillage] = useState(profile?.village || '');
+  const translationCacheRef = useRef<Map<string, string>>(new Map());
 
   const language = profile?.language || 'hi-IN';
+
+  const translateWithCache = useCallback(
+    async (text: string, targetLanguage: string) => {
+      if (!text || !text.trim()) {
+        return text;
+      }
+
+      if (!targetLanguage || targetLanguage === 'en-IN') {
+        return text;
+      }
+
+      const cacheKey = `${targetLanguage}:${text}`;
+      const cache = translationCacheRef.current;
+
+      if (cache.has(cacheKey)) {
+        return cache.get(cacheKey)!;
+      }
+
+      try {
+        const translated = await translateTextLive(text, 'auto', targetLanguage);
+        cache.set(cacheKey, translated);
+        return translated;
+      } catch (error) {
+        console.error('SETTINGS TRANSLATE: Failed to translate text', error);
+        return text;
+      }
+    },
+    []
+  );
+
+  useEffect(() => {
+    let isActive = true;
+
+    const applyCropTranslation = async () => {
+      if (!profile?.cropType) {
+        if (isActive) {
+          setDisplayCropType('');
+        }
+        return;
+      }
+
+      if (language === 'en-IN') {
+        if (isActive) {
+          setDisplayCropType(profile.cropType);
+        }
+        return;
+      }
+
+      const translated = await translateWithCache(profile.cropType, language);
+      if (isActive) {
+        setDisplayCropType(translated);
+      }
+    };
+
+    applyCropTranslation();
+
+    return () => {
+      isActive = false;
+    };
+  }, [profile?.cropType, language, translateWithCache]);
+
+  useEffect(() => {
+    let isActive = true;
+
+    const applyVillageTranslation = async () => {
+      if (!profile?.village) {
+        if (isActive) {
+          setDisplayVillage('');
+        }
+        return;
+      }
+
+      if (language === 'en-IN') {
+        if (isActive) {
+          setDisplayVillage(profile.village);
+        }
+        return;
+      }
+
+      const translated = await translateWithCache(profile.village, language);
+      if (isActive) {
+        setDisplayVillage(translated);
+      }
+    };
+
+    applyVillageTranslation();
+
+    return () => {
+      isActive = false;
+    };
+  }, [profile?.village, language, translateWithCache]);
 
   const messages = {
     'hi-IN': {
@@ -259,7 +353,7 @@ const Settings: React.FC = () => {
                   <p className="text-gray-600">
                     {language === 'hi-IN' ? 'फसल' :
                      language === 'mr-IN' ? 'पिक' :
-                     'Crop'}: {profile?.cropType || (
+                     'Crop'}: {displayCropType || profile?.cropType || (
                       language === 'hi-IN' ? 'सेट नहीं किया गया' :
                       language === 'mr-IN' ? 'सेट नाही' :
                       'Not set'
@@ -268,7 +362,7 @@ const Settings: React.FC = () => {
                   <p className="text-gray-600">
                     {language === 'hi-IN' ? 'गांव' :
                      language === 'mr-IN' ? 'गाव' :
-                     'Village'}: {profile?.village || (
+                     'Village'}: {displayVillage || profile?.village || (
                       language === 'hi-IN' ? 'सेट नहीं किया गया' :
                       language === 'mr-IN' ? 'सेट नाही' :
                       'Not set'

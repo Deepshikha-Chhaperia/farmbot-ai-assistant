@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,6 +17,7 @@ import {
   Volume2
 } from 'lucide-react';
 import { useProfile } from '@/components/Profile/ProfileProvider';
+import { translateTextLive } from '@/utils/realTimeTranslation';
 
 interface WeatherData {
   temperature: number;
@@ -39,12 +40,138 @@ const Dashboard: React.FC = () => {
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [marketData, setMarketData] = useState<MarketData[]>([]);
   const [location, setLocation] = useState<string>('');
+  const [displayLocation, setDisplayLocation] = useState<string>('');
+  const [displayCropType, setDisplayCropType] = useState<string>(profile?.cropType || '');
+  const [displayVillage, setDisplayVillage] = useState<string>(profile?.village || '');
   const [isLoading, setIsLoading] = useState(true);
   const [hasSpokenWelcome, setHasSpokenWelcome] = useState(false);
   const [isListening, setIsListening] = useState(false);
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const translationCacheRef = useRef<Map<string, string>>(new Map());
   const language = profile?.language || 'hi-IN';
+
+  const translateWithCache = useCallback(
+    async (text: string, targetLanguage: string) => {
+      if (!text || !text.trim()) {
+        return text;
+      }
+
+      if (!targetLanguage || targetLanguage === 'en-IN') {
+        return text;
+      }
+
+      const cacheKey = `${targetLanguage}:${text}`;
+      const cache = translationCacheRef.current;
+
+      if (cache.has(cacheKey)) {
+        return cache.get(cacheKey)!;
+      }
+
+      try {
+        const translated = await translateTextLive(text, 'auto', targetLanguage);
+        cache.set(cacheKey, translated);
+        return translated;
+      } catch (error) {
+        console.error('DASHBOARD TRANSLATE: Failed to translate text', error);
+        return text;
+      }
+    },
+    []
+  );
+
+  useEffect(() => {
+    let isActive = true;
+
+    const applyLocationTranslation = async () => {
+      if (!location) {
+        if (isActive) {
+          setDisplayLocation('');
+        }
+        return;
+      }
+
+      if (language === 'en-IN') {
+        if (isActive) {
+          setDisplayLocation(location);
+        }
+        return;
+      }
+
+      const translated = await translateWithCache(location, language);
+      if (isActive) {
+        setDisplayLocation(translated);
+      }
+    };
+
+    applyLocationTranslation();
+
+    return () => {
+      isActive = false;
+    };
+  }, [location, language, translateWithCache]);
+
+  useEffect(() => {
+    let isActive = true;
+
+    const applyCropTranslation = async () => {
+      if (!profile?.cropType) {
+        if (isActive) {
+          setDisplayCropType('');
+        }
+        return;
+      }
+
+      if (language === 'en-IN') {
+        if (isActive) {
+          setDisplayCropType(profile.cropType);
+        }
+        return;
+      }
+
+      const translated = await translateWithCache(profile.cropType, language);
+      if (isActive) {
+        setDisplayCropType(translated);
+      }
+    };
+
+    applyCropTranslation();
+
+    return () => {
+      isActive = false;
+    };
+  }, [profile?.cropType, language, translateWithCache]);
+
+  useEffect(() => {
+    let isActive = true;
+
+    const applyVillageTranslation = async () => {
+      if (!profile?.village) {
+        if (isActive) {
+          setDisplayVillage('');
+        }
+        return;
+      }
+
+      if (language === 'en-IN') {
+        if (isActive) {
+          setDisplayVillage(profile.village);
+        }
+        return;
+      }
+
+      const translated = await translateWithCache(profile.village, language);
+      if (isActive) {
+        setDisplayVillage(translated);
+      }
+    };
+
+    applyVillageTranslation();
+
+    return () => {
+      isActive = false;
+    };
+  }, [profile?.village, language, translateWithCache]);
 
   // Language-specific messages
   const messages = {
@@ -272,38 +399,6 @@ const Dashboard: React.FC = () => {
     return unitTranslations[unit.toLowerCase()] || unit;
   };
   
-  const translateLocation = (locationString: string): string => {
-    if (language !== 'hi-IN') return locationString;
-    
-    const locationTranslations: { [key: string]: string } = {
-      'Kolkata': 'कोलकाता',
-      'West Bengal': 'पश्चिम बंगाल',
-      'Mumbai': 'मुंबई',
-      'Delhi': 'दिल्ली',
-      'Chennai': 'चेन्नई',
-      'Bangalore': 'बेंगलूरु',
-      'Hyderabad': 'हैदराबाद',
-      'Maharashtra': 'महाराष्ट्र',
-      'Gujarat': 'गुजरात',
-      'Rajasthan': 'राजस्थान',
-      'Punjab': 'पंजाब',
-      'Haryana': 'हरियाणा',
-      'Uttar Pradesh': 'उत्तर प्रदेश',
-      'Bihar': 'बिहार',
-      'Odisha': 'ओडिशा',
-      'Tamil Nadu': 'तमिलनाडु',
-      'Karnataka': 'कर्नाटक',
-      'Andhra Pradesh': 'आंध्र प्रदेश'
-    };
-    
-    let translatedLocation = locationString;
-    for (const [english, hindi] of Object.entries(locationTranslations)) {
-      translatedLocation = translatedLocation.replace(english, hindi);
-    }
-    
-    return translatedLocation;
-  };
-
   const getWeatherDescription = (code: number): string => {
     const weatherCodes: { [key: number]: { [key: string]: string } } = {
       0: { 'hi-IN': 'साफ आसमान', 'mr-IN': 'स्पष्ट आकाश', 'en-IN': 'Clear sky' },
@@ -378,6 +473,14 @@ const Dashboard: React.FC = () => {
     );
   }
 
+  const cropLabel = displayCropType || profile?.cropType || '';
+  const villageLabel = displayVillage || profile?.village || (
+    language === 'hi-IN' ? 'भारत' :
+    language === 'mr-IN' ? 'भारत' :
+    'India'
+  );
+  const locationDisplay = displayLocation || location;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-blue-50">
       {/* Header */}
@@ -395,15 +498,13 @@ const Dashboard: React.FC = () => {
                    `Hello ${profile?.name || 'Farmer'}`}
                 </h1>
                 <p className="text-sm text-gray-600">
-                  {profile?.cropType && (
-                    language === 'hi-IN' ? `${profile.cropType} किसान` :
-                    language === 'mr-IN' ? `${profile.cropType} शेतकरी` :
-                    `${profile.cropType} farmer`
-                  )} • {profile?.village || (
-                    language === 'hi-IN' ? 'भारत' :
-                    language === 'mr-IN' ? 'भारत' :
-                    'India'
+                  {cropLabel && (
+                    language === 'hi-IN' ? `${cropLabel} किसान` :
+                    language === 'mr-IN' ? `${cropLabel} शेतकरी` :
+                    `${cropLabel} farmer`
                   )}
+                  {cropLabel ? ' • ' : ''}
+                  {villageLabel}
                 </p>
               </div>
             </div>
@@ -452,7 +553,7 @@ const Dashboard: React.FC = () => {
                    'Location'}
                 </p>
                 <p className="text-lg font-semibold text-gray-800">
-                  {location ? translateLocation(location) : (language === 'hi-IN' ? 'लोड हो रहा है...' : language === 'mr-IN' ? 'लोड होत आहे...' : 'Loading...')}
+                  {locationDisplay || (language === 'hi-IN' ? 'लोड हो रहा है...' : language === 'mr-IN' ? 'लोड होत आहे...' : 'Loading...')}
                 </p>
               </div>
             </div>
@@ -571,9 +672,9 @@ const Dashboard: React.FC = () => {
                       )}
                       {card.id === 'crop-care' && profile?.cropType && (
                         <span>
-                          {language === 'hi-IN' ? `आपकी फसल: ${profile.cropType}` :
-                           language === 'mr-IN' ? `तुमचे पिक: ${profile.cropType}` :
-                           `Your crop: ${profile.cropType}`}
+                          {language === 'hi-IN' ? `आपकी फसल: ${cropLabel}` :
+                           language === 'mr-IN' ? `तुमचे पिक: ${cropLabel}` :
+                           `Your crop: ${cropLabel}`}
                         </span>
                       )}
                       {card.id === 'irrigation' && weather && (
