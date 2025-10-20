@@ -24,7 +24,7 @@ FarmBot is a **revolutionary voice-first AI assistant** that:
 - **Speaks naturally** in Hindi, English, and Marathi with authentic pronunciation
 - **Uses 100% real government data** from official APIs (Agmarknet, eNAM)
 - **Powered by AI** that understands Indian farming contexts and seasons
-- **Works on 2G/3G networks** optimized for rural India
+- **Optimized for low-bandwidth environments** typical of rural India
 - **Gives actionable advice** farmers can use immediately in their fields
 
 ## See It In Action
@@ -58,7 +58,7 @@ FarmBot is a **revolutionary voice-first AI assistant** that:
 ### Performance & Reliability
 - **Smart Caching**: 30-min market data, 10-min weather cache
 - **Multi-tier Fallbacks**: Never shows "No data available"
-- **Rural Optimization**: <1MB bundles, works on 2G/3G
+- **Rural Accessibility**: Optimized API calls and voice-first interface to reduce literacy barriers
 - **Sub-3-second Responses**: Even on slow connections
 
 ## Quick Start
@@ -204,7 +204,7 @@ bun dev  # or npm run dev
 1. **Real Government Data** - Not mock data like other projects
 2. **Premium Voice AI** - ElevenLabs for authentic pronunciation  
 3. **Cultural Authenticity** - Built with deep understanding of Indian agriculture
-4. **Rural Optimization** - Designed for 2G networks, not 5G cities
+4. **Rural Accessibility** - Optimized for low-bandwidth environments with voice-first design
 5. **Production Ready** - Actually deployed and working, not just a demo
 
 ### Social Impact
@@ -272,7 +272,7 @@ We believe agricultural technology should be accessible to everyone. By open-sou
 - **Languages Supported**: 3 (expanding to 13+)
 - **Data Sources**: 5+ real government and weather APIs
 - **Performance**: <3 second response times
-- **Accessibility**: Works on 2G/3G networks
+- **Accessibility**: Voice-first design optimized for low-bandwidth rural environments
 
 ---
 
