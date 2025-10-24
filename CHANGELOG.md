@@ -21,14 +21,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### AI & Intelligence
 - **Hybrid AI Architecture**: 80% Agentic + 60% RAG for contextual responses
-- **OpenAI GPT-4 Integration**: Via OpenRouter for intelligent agricultural advice
-- **600+ Agricultural Knowledge Base**: Indian crops, seasons, and farming practices
+- **OpenAI GPT-4o-mini Integration**: Via OpenRouter for intelligent agricultural advice
+- **70+ Agricultural Knowledge Base**: Indian crops, seasons, and farming practices
 - **Context-Aware Responses**: Weather + market + crop + season intelligence
 
 #### Real Data Integration
-- **Government Market APIs**: Agmarknet and eNAM platform integration
+- **Government Market APIs**: eNAM platform integration and Data.gov.in
 - **Live Weather Services**: Open-Meteo, WeatherAPI.com, OpenWeatherMap
-- **MSP Data**: Minimum Support Price from government sources
 - **Real-Time Updates**: Smart caching with 30-min market, 10-min weather refresh
 
 #### Voice & Speech
@@ -64,9 +63,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - TanStack Query for intelligent server state management
 
 #### AI & APIs
-- OpenAI GPT-4 via OpenRouter for agricultural intelligence
+- OpenAI GPT-4o-mini via OpenRouter for agricultural intelligence
 - ElevenLabs API for premium multilingual text-to-speech
-- Government APIs: Agmarknet, eNAM (Ministry of Agriculture)
+- Government APIs: eNAM, Data.gov.in (Ministry of Agriculture)
 - Weather APIs: Open-Meteo (primary), WeatherAPI, OpenWeatherMap
 
 #### Performance Features
@@ -178,7 +177,8 @@ This project is licensed under the MIT License - see [LICENSE](LICENSE) for deta
 ## Acknowledgments
 
 - Government of India for open agricultural data APIs
+- eNAM Platform for agricultural market data access
 - ElevenLabs for premium voice synthesis technology
 - Open-Meteo for free, reliable weather data
-- OpenAI for GPT-4 agricultural intelligence
+- OpenAI for GPT-4o-mini agricultural intelligence
 - Indian farmers who inspired this project
