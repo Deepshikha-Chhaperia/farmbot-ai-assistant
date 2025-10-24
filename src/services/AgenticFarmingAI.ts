@@ -1,6 +1,20 @@
 import OpenAI from 'openai';
 import LiveGovernmentMarketService from './LiveGovernmentMarketService';
 
+// RAG Document Interface
+interface RAGDocument {
+  id: string;
+  content: string;
+  category: string;
+  language: string;
+  embedding?: number[];
+  metadata: {
+    source: string;
+    reliability: number;
+    region?: string;
+  };
+}
+
 // Language detection mapping
 const LANGUAGE_CODES = {
   'hindi': 'hi-IN',
@@ -45,7 +59,7 @@ const INDIAN_CROP_CALENDAR = {
   }
 };
 
-// Comprehensive Agricultural Knowledge Base with RAG-like structure
+// Comprehensive Agricultural Knowledge Base for RAG System
 const AGRICULTURAL_KNOWLEDGE_BASE = {
   // Crop-specific knowledge
   crops: {
@@ -277,6 +291,11 @@ class AgenticFarmingAI {
   private knowledgeBase: typeof AGRICULTURAL_KNOWLEDGE_BASE;
   private marketService: LiveGovernmentMarketService;
   private locationData: { lat: number; lon: number; region?: string } | null = null;
+  
+  // RAG System Components
+  private ragDocuments: RAGDocument[] = [];
+  private embeddingsCache = new Map<string, number[]>();
+  private isRAGInitialized = false;
 
   constructor() {
     this.openai = new OpenAI({
@@ -286,6 +305,271 @@ class AgenticFarmingAI {
     });
     this.knowledgeBase = AGRICULTURAL_KNOWLEDGE_BASE;
     this.marketService = new LiveGovernmentMarketService();
+    
+    // Initialize RAG system
+    this.initializeRAGSystem();
+  }
+
+  // Initialize RAG System with Document Chunking and Embeddings
+  private async initializeRAGSystem() {
+    if (this.isRAGInitialized) return;
+
+    try {
+      console.log('Initializing RAG system...');
+      
+      // Step 1: Document Chunking - Convert structured knowledge to RAG documents
+      this.ragDocuments = await this.chunkKnowledgeBase();
+      
+      // Step 2: Generate Embeddings for semantic search
+      await this.generateEmbeddings();
+      
+      this.isRAGInitialized = true;
+      console.log(`RAG system initialized with ${this.ragDocuments.length} documents`);
+    } catch (error) {
+      console.error('RAG initialization failed:', error);
+      this.isRAGInitialized = false;
+    }
+  }
+
+  // Document Chunking Strategy
+  private async chunkKnowledgeBase(): Promise<RAGDocument[]> {
+    const documents: RAGDocument[] = [];
+    let docId = 1;
+
+    // Chunk crops knowledge
+    for (const [cropName, cropData] of Object.entries(this.knowledgeBase.crops)) {
+      for (const [aspect, langData] of Object.entries(cropData)) {
+        for (const [lang, content] of Object.entries(langData as any)) {
+          documents.push({
+            id: `crop-${docId++}`,
+            content: content as string,
+            category: `crops-${cropName}-${aspect}`,
+            language: lang,
+            metadata: {
+              source: `Agricultural Knowledge Base - ${cropName}`,
+              reliability: 0.9,
+              region: 'India'
+            }
+          });
+        }
+      }
+    }
+
+    // Chunk weather knowledge
+    for (const [weatherType, langData] of Object.entries(this.knowledgeBase.weather)) {
+      for (const [lang, content] of Object.entries(langData)) {
+        documents.push({
+          id: `weather-${docId++}`,
+          content: content as string,
+          category: `weather-${weatherType}`,
+          language: lang,
+          metadata: {
+            source: 'Weather Advisory System',
+            reliability: 0.85
+          }
+        });
+      }
+    }
+
+    // Chunk irrigation knowledge
+    for (const [irrigationType, langData] of Object.entries(this.knowledgeBase.irrigation)) {
+      for (const [lang, content] of Object.entries(langData)) {
+        documents.push({
+          id: `irrigation-${docId++}`,
+          content: content as string,
+          category: `irrigation-${irrigationType}`,
+          language: lang,
+          metadata: {
+            source: 'Irrigation Best Practices',
+            reliability: 0.9
+          }
+        });
+      }
+    }
+
+    // Chunk nutrition knowledge
+    for (const [nutrientType, langData] of Object.entries(this.knowledgeBase.nutrition)) {
+      for (const [lang, content] of Object.entries(langData)) {
+        documents.push({
+          id: `nutrition-${docId++}`,
+          content: content as string,
+          category: `nutrition-${nutrientType}`,
+          language: lang,
+          metadata: {
+            source: 'Plant Nutrition Guide',
+            reliability: 0.9
+          }
+        });
+      }
+    }
+
+    // Chunk disease knowledge
+    for (const [diseaseType, langData] of Object.entries(this.knowledgeBase.diseases)) {
+      for (const [lang, content] of Object.entries(langData)) {
+        documents.push({
+          id: `disease-${docId++}`,
+          content: content as string,
+          category: `diseases-${diseaseType}`,
+          language: lang,
+          metadata: {
+            source: 'Plant Disease Management',
+            reliability: 0.85
+          }
+        });
+      }
+    }
+
+    // Chunk pest knowledge
+    for (const [pestType, langData] of Object.entries(this.knowledgeBase.pests)) {
+      for (const [lang, content] of Object.entries(langData)) {
+        documents.push({
+          id: `pest-${docId++}`,
+          content: content as string,
+          category: `pests-${pestType}`,
+          language: lang,
+          metadata: {
+            source: 'Pest Management System',
+            reliability: 0.85
+          }
+        });
+      }
+    }
+
+    // Chunk emergency knowledge
+    for (const [emergencyType, langData] of Object.entries(this.knowledgeBase.emergency)) {
+      for (const [lang, content] of Object.entries(langData)) {
+        documents.push({
+          id: `emergency-${docId++}`,
+          content: content as string,
+          category: `emergency-${emergencyType}`,
+          language: lang,
+          metadata: {
+            source: 'Emergency Response System',
+            reliability: 0.95
+          }
+        });
+      }
+    }
+
+    // Chunk finance knowledge
+    for (const [financeType, langData] of Object.entries(this.knowledgeBase.finance)) {
+      for (const [lang, content] of Object.entries(langData)) {
+        documents.push({
+          id: `finance-${docId++}`,
+          content: content as string,
+          category: `finance-${financeType}`,
+          language: lang,
+          metadata: {
+            source: 'Agricultural Finance Guide',
+            reliability: 0.8
+          }
+        });
+      }
+    }
+
+    return documents;
+  }
+
+  // Generate Embeddings for Semantic Search
+  private async generateEmbeddings() {
+    if (!import.meta.env.VITE_OPENROUTER_API_KEY) {
+      console.warn('No API key available for embeddings generation');
+      return;
+    }
+
+    for (const doc of this.ragDocuments) {
+      if (this.embeddingsCache.has(doc.id)) {
+        doc.embedding = this.embeddingsCache.get(doc.id);
+        continue;
+      }
+
+      try {
+        const response = await this.openai.embeddings.create({
+          model: 'text-embedding-3-small',
+          input: doc.content
+        });
+
+        doc.embedding = response.data[0].embedding;
+        this.embeddingsCache.set(doc.id, doc.embedding);
+        
+        // Add delay to avoid rate limiting
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+      } catch (error) {
+        console.error(`Embedding generation failed for document ${doc.id}:`, error);
+      }
+    }
+
+    console.log(`Generated embeddings for ${this.ragDocuments.filter(d => d.embedding).length} documents`);
+  }
+
+  // RAG Retrieval - Semantic Search using Vector Similarity
+  private async ragRetrieval(query: string, language: string = 'en-IN', topK: number = 5): Promise<RAGDocument[]> {
+    if (!this.isRAGInitialized || !import.meta.env.VITE_OPENROUTER_API_KEY) {
+      return this.fallbackKeywordRetrieval(query, language, topK);
+    }
+
+    try {
+      // Generate query embedding
+      const queryResponse = await this.openai.embeddings.create({
+        model: 'text-embedding-3-small',
+        input: query
+      });
+      const queryEmbedding = queryResponse.data[0].embedding;
+
+      // Calculate cosine similarity with all documents
+      const scoredDocuments = this.ragDocuments
+        .filter(doc => doc.embedding && (doc.language === language || doc.language === 'en-IN'))
+        .map(doc => ({
+          doc,
+          score: this.calculateCosineSimilarity(queryEmbedding, doc.embedding!)
+        }))
+        .sort((a, b) => b.score - a.score)
+        .slice(0, topK);
+
+      console.log(`RAG retrieval found ${scoredDocuments.length} relevant documents`);
+      return scoredDocuments.map(item => item.doc);
+      
+    } catch (error) {
+      console.error('RAG retrieval failed:', error);
+      return this.fallbackKeywordRetrieval(query, language, topK);
+    }
+  }
+
+  // Cosine Similarity Calculation
+  private calculateCosineSimilarity(a: number[], b: number[]): number {
+    if (a.length !== b.length) return 0;
+
+    let dotProduct = 0;
+    let normA = 0;
+    let normB = 0;
+
+    for (let i = 0; i < a.length; i++) {
+      dotProduct += a[i] * b[i];
+      normA += a[i] * a[i];
+      normB += b[i] * b[i];
+    }
+
+    return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
+  }
+
+  // Fallback Keyword-based Retrieval
+  private fallbackKeywordRetrieval(query: string, language: string, topK: number): RAGDocument[] {
+    const queryLower = query.toLowerCase();
+    const keywords = queryLower.split(' ').filter(word => word.length > 2);
+
+    return this.ragDocuments
+      .filter(doc => doc.language === language || doc.language === 'en-IN')
+      .map(doc => ({
+        doc,
+        score: keywords.reduce((score, keyword) => 
+          score + (doc.content.toLowerCase().includes(keyword) ? 1 : 0), 0
+        ) / keywords.length
+      }))
+      .filter(item => item.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, topK)
+      .map(item => item.doc);
   }
 
   // Detect language from user input
@@ -312,11 +596,15 @@ class AgenticFarmingAI {
     return 'en-IN'; // Default to English
   }
 
-  // Enhanced RAG-like retrieval from knowledge base
-  retrieveRelevantKnowledge(query: string, weatherData: any, marketData?: any): string[] {
+  // RAG-Enhanced Knowledge Retrieval
+  async retrieveRelevantKnowledge(query: string, weatherData: any, marketData?: any): Promise<string[]> {
     const relevantInfo: string[] = [];
     const lowerQuery = query.toLowerCase();
     const detectedLang = this.detectLanguage(query);
+
+    // RAG Retrieval - Semantic Search
+    const ragResults = await this.ragRetrieval(query, detectedLang, 8);
+    relevantInfo.push(...ragResults.map(doc => doc.content));
 
     // Weather-based context retrieval with enhanced conditions
     if (weatherData) {
@@ -513,7 +801,7 @@ class AgenticFarmingAI {
       }
     }
 
-    const relevantKnowledge = this.retrieveRelevantKnowledge(userQuery, weatherData, marketData);
+    const relevantKnowledge = await this.retrieveRelevantKnowledge(userQuery, weatherData, marketData);
 
     // Build comprehensive context for the AI agent
     const systemPrompt = this.buildSystemPrompt(detectedLanguage, locationData);
@@ -890,6 +1178,23 @@ class AgenticFarmingAI {
       console.error('Proactive insights error:', error);
       return [];
     }
+  }
+
+  // Get RAG System Statistics
+  getRAGStats() {
+    return {
+      isInitialized: this.isRAGInitialized,
+      totalDocuments: this.ragDocuments.length,
+      documentsWithEmbeddings: this.ragDocuments.filter(d => d.embedding).length,
+      categories: [...new Set(this.ragDocuments.map(d => d.category))].length,
+      languages: [...new Set(this.ragDocuments.map(d => d.language))],
+      cacheSize: this.embeddingsCache.size,
+      documentsByCategory: this.ragDocuments.reduce((acc, doc) => {
+        const category = doc.category.split('-')[0];
+        acc[category] = (acc[category] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>)
+    };
   }
 }
 
