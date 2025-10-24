@@ -22,7 +22,7 @@ Most agricultural apps fail because they assume literacy and provide mock data i
 FarmBot is a **revolutionary voice-first AI assistant** that:
 
 - **Speaks naturally** in Hindi, English, and Marathi with authentic pronunciation
-- **Uses 100% real government data** from official APIs (Agmarknet, eNAM)
+- **Uses 100% real government data** from official APIs (eNAM, Data.gov.in)
 - **Powered by AI** that understands Indian farming contexts and seasons
 - **Optimized for low-bandwidth environments** typical of rural India
 - **Gives actionable advice** farmers can use immediately in their fields
