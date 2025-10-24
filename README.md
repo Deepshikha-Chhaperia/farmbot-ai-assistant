@@ -22,7 +22,7 @@ Most agricultural apps fail because they assume literacy and provide mock data i
 FarmBot is a **revolutionary voice-first AI assistant** that:
 
 - **Speaks naturally** in Hindi, English, and Marathi with authentic pronunciation
-- **Uses 100% real government data** from official APIs (Agmarknet, eNAM)
+- **Uses real government data** from official APIs (eNAM, Data.gov.in)
 - **Powered by AI** that understands Indian farming contexts and seasons
 - **Optimized for low-bandwidth environments** typical of rural India
 - **Gives actionable advice** farmers can use immediately in their fields
@@ -41,8 +41,8 @@ FarmBot is a **revolutionary voice-first AI assistant** that:
 
 ### AI-Powered Intelligence
 - **Hybrid AI Architecture**: Combines Agentic AI with RAG for contextual responses
-- **OpenAI GPT-4 Integration**: Via OpenRouter for intelligent agricultural advice
-- **600+ Agricultural Knowledge Base**: Covers Indian crops, seasons, and farming practices
+- **OpenAI GPT-4o-mini Integration**: Via OpenRouter for intelligent agricultural advice
+- **70+ Agricultural Knowledge Base**: Covers Indian crops, seasons, and farming practices
 
 ### Premium Voice Experience
 - **ElevenLabs Integration**: Natural Hindi/English voices with agricultural terminology
@@ -50,10 +50,9 @@ FarmBot is a **revolutionary voice-first AI assistant** that:
 - **Smart Voice Flow**: Page-specific prompts to avoid confusion
 
 ### Real Government Data
-- **Agmarknet API**: Ministry of Agriculture market data
 - **eNAM Platform**: Electronic National Agriculture Market integration
+- **Data.gov.in APIs**: Government agricultural data sources
 - **Live Weather APIs**: Open-Meteo, WeatherAPI.com, OpenWeatherMap
-- **MSP Data**: Minimum Support Price from government sources
 
 ### Performance & Reliability
 - **Smart Caching**: 30-min market data, 10-min weather cache
@@ -117,13 +116,13 @@ VITE_DATA_GOV_IN_API_KEY=your_data_gov_key
 - **TanStack Query** for smart caching
 
 ### AI & Voice Services
-- **OpenAI GPT-4** via OpenRouter API
+- **OpenAI GPT-4o-mini** via OpenRouter API
 - **ElevenLabs** premium text-to-speech
 - **Web Speech API** for recognition
 - **Custom RAG Pipeline** with agricultural knowledge
 
 ### Data Sources
-- **Government APIs**: Agmarknet, eNAM
+- **Government APIs**: eNAM, Data.gov.in
 - **Weather Services**: Open-Meteo, WeatherAPI
 - **Local Storage**: Farmer profiles & preferences
 
@@ -136,8 +135,8 @@ VITE_DATA_GOV_IN_API_KEY=your_data_gov_key
 
 ### 1. Clone & Install
 ```bash
-git clone https://github.com/yourusername/farmbot.git
-cd farmbot
+git clone https://github.com/Deepshikha-Chhaperia/farmbot-ai-assistant.git
+cd farmbot-ai-assistant
 bun install  # or npm install
 ```
 
@@ -261,9 +260,10 @@ We believe agricultural technology should be accessible to everyone. By open-sou
 ## Acknowledgments
 
 - **Government of India** for open agricultural data APIs
+- **eNAM Platform** for agricultural market data access
 - **ElevenLabs** for premium voice synthesis technology
 - **Open-Meteo** for free, reliable weather data
-- **OpenAI** for GPT-4 agricultural intelligence
+- **OpenAI** for GPT-4o-mini agricultural intelligence
 - **Indian Farmers** who inspired this project
 
 ## Impact Stats
